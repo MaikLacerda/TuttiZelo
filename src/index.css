@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* TuttiZelo Official Brand Color System (Extracted from Official Logo) */
+    --color-tutti-brand: #96382b;
+    --color-tutti-brand-hover: #7d2e23;
+    --color-tutti-brand-active: #64241b;
+    --color-tutti-coral: #fa7c64;
+    --color-tutti-coral-hover: #e56b54;
+    --color-tutti-soft: #fdf6f4;
+    --color-tutti-cream: #faf7f2;
+    --color-tutti-dark: #4a1e18;
+    --color-tutti-accent: #fa7c64;
+    
+    /* Verified Trust Colors (WCAG AA Compliant) */
+    --color-verified-green: #15803d;
+    --color-verified-green-soft: #f0fdf4;
+    --color-level1-blue: #0369a1;
+    --color-level1-blue-soft: #f0f9ff;
+    --color-level3-amber: #b45309;
+    --color-level3-amber-soft: #fffbeb;
+
+    /* Neutrals */
+    --color-surface-card: #ffffff;
+    --color-surface-bg: #faf7f2;
+    --color-text-main: #2b1815;
+    --color-text-muted: #5c4541;
+    --color-border-subtle: #ebdcd7;
+  }
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-surface-bg);
+  color: var(--color-text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Accessible focus ring style */
+:focus-visible {
+  outline: 2px solid var(--color-tutti-brand);
+  outline-offset: 2px;
+}

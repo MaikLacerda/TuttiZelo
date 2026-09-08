@@ -1,0 +1,6 @@
+{
+  "name": "TuttiZelo",
+  "description": "Plataforma multi-tenant de conexão segura entre famílias e cuidadores (babás, idosos e pets) com verificação em múltiplos níveis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
