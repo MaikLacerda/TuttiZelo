@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
 import {
-  UserPlus,
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  FileCheck,
-  Upload,
-  ArrowRight,
-  ArrowLeft,
-  DollarSign,
-  Heart,
   Baby,
+  Heart,
   Dog,
   MapPin,
-  Calendar,
+  Camera,
+  ArrowRight,
+  ArrowLeft,
+  Info,
+  DollarSign,
+  FileText,
+  Clock,
   Sparkles,
   Lock,
 } from 'lucide-react';
-import { CaregiverCategory, CaregiverProfile, CaregiverWithDetails } from '../../types/database';
-import { VerificationBadge } from '../brand/Badge';
+import { CaregiverCategory, CaregiverWithDetails } from '../../types/database';
 
 interface CaregiverOnboardingProps {
-  onSuccess: (newCaregiver: Partial<CaregiverWithDetails>) => void;
+  onSuccess: (profile: Partial<CaregiverWithDetails>) => void;
   onCancel: () => void;
 }
 
@@ -39,12 +38,13 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
   const [city, setCity] = useState('São Paulo');
   const [state, setState] = useState('SP');
   const [yearsExperience, setYearsExperience] = useState<number>(3);
-  const [hourlyRate, setHourlyRate] = useState<number>(45);
+  const [hourlyRate, setHourlyRate] = useState<number>(15);
   const [avatarUrl, setAvatarUrl] = useState(
     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=80'
   );
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [statesLived, setStatesLived] = useState<string[]>(['SP']);
+  const [rateError, setRateError] = useState<string>('');
 
   // LGPD consent states
   const [consentBackgroundCheck, setConsentBackgroundCheck] = useState(true);
@@ -58,20 +58,20 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
       'Primeiros Socorros Infantil',
       'Introdução Alimentar',
       'Autismo (TEA)',
-      'Rotina Montessoriana',
       'Acompanhamento Escolar',
-      'Gemelares',
-      'Maternidade Inicial',
+      'Inglês Fluente',
+      'Rotina Montessoriana',
+      'Gêmeos e Múltiplos',
     ],
     elderly_care: [
       'Alzheimer / Demência',
       'Administração de Medicação',
       'Mobilidade Reduzida / Cadeirantes',
       'Pós-operatório',
-      'Sinais Vitais',
       'Parkinson',
-      'Prevenção de Quedas',
-      'Reabilitação Motora',
+      'Sinais Vitais',
+      'Acompanhamento a Consultas',
+      'Nutrição Enteral',
     ],
     pet_sitter: [
       'Cães Grande Porte',
@@ -158,36 +158,44 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
             { id: 1, title: 'Pilar & Categoria' },
             { id: 2, title: 'Perfil Profissional' },
             { id: 3, title: 'Antecedentes & LGPD' },
-            { id: 4, title: 'Revisão & Ativação' },
-          ].map((s) => (
-            <div
-              key={s.id}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap ${
-                step === s.id
-                  ? 'bg-[#96382B] text-white'
-                  : step > s.id
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  : 'bg-zinc-100 text-zinc-500'
-              }`}
-            >
-              {step > s.id ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <span>{s.id}.</span>}
-              <span>{s.title}</span>
+            { id: 4, title: 'Revisão & Selo' },
+          ].map((item, idx) => (
+            <div key={item.id} className="flex items-center gap-2 shrink-0">
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                  step > item.id
+                    ? 'bg-emerald-600 text-white'
+                    : step === item.id
+                    ? 'bg-[#96382B] text-white ring-4 ring-[#96382B]/20'
+                    : 'bg-zinc-100 text-zinc-400'
+                }`}
+              >
+                {step > item.id ? <CheckCircle2 className="w-4 h-4" /> : item.id}
+              </div>
+              <span
+                className={`text-xs font-medium ${
+                  step === item.id ? 'text-zinc-900 font-bold' : 'text-zinc-400'
+                }`}
+              >
+                {item.title}
+              </span>
+              {idx < 3 && <div className="w-6 h-0.5 bg-zinc-200 mx-1 hidden sm:block" />}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="bg-white rounded-2xl border border-zinc-200 p-6 sm:p-8 shadow-xs">
-        {/* STEP 1: Select Category Pillar */}
+      {/* Form Container */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-zinc-200 shadow-sm">
+        {/* STEP 1: Escolha do Pilar */}
         {step === 1 && (
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-bold text-zinc-900 font-display">
-                Qual é a sua especialidade de cuidado principal?
+                Em qual pilar de cuidado você atua?
               </h2>
               <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-                A TuttiZelo atende três pilares com curadoria rigorosa, seguro de plantão e taxa justa de apenas 10% a 15% sobre os atendimentos.
+                Selecione a sua área de vocação principal. O TuttiZelo valida certificações específicas para cada categoria.
               </p>
             </div>
 
@@ -195,8 +203,8 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
               {[
                 {
                   id: 'babysitter' as CaregiverCategory,
-                  title: 'Babá & Cuidado Infantil',
-                  desc: 'Apoio no desenvolvimento, rotinas e acolhimento com segurança infantil de 0 a 12 anos.',
+                  title: 'Babá & Infantil',
+                  desc: 'Cuidado de bebês, apoio escolar, introdução alimentar e rotinas de desenvolvimento.',
                   icon: <Baby className="w-7 h-7 text-[#96382B]" />,
                 },
                 {
@@ -259,7 +267,7 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
           </div>
         )}
 
-        {/* STEP 2: Profile Details */}
+        {/* STEP 2: Dados Pessoais & Apresentação */}
         {step === 2 && (
           <div className="space-y-6">
             <div>
@@ -278,7 +286,6 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
                 </label>
                 <input
                   type="text"
-                  required
                   placeholder="Ex: Amanda Guimarães Ferreira"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -286,9 +293,11 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">Cidade</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">
+                    Cidade
+                  </label>
                   <input
                     type="text"
                     value={city}
@@ -297,22 +306,22 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">Estado (UF)</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">
+                    Estado (UF)
+                  </label>
                   <select
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-300 bg-white"
                   >
                     {brazilianStates.map((uf) => (
-                      <option key={uf} value={uf}>
-                        {uf}
-                      </option>
+                      <option key={uf} value={uf}>{uf}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 block mb-1">
                     Anos de Experiência Comprovada
@@ -327,23 +336,43 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">
-                    Preço Desejado por Hora (R$/hora)
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-semibold text-zinc-700 block">
+                      Preço Desejado por Hora (R$/hora)
+                    </label>
+                    <span className="text-[11px] font-bold text-[#96382B]">Faixa: R$ 12,50 a R$ 18,00/h</span>
+                  </div>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-sm text-zinc-500 font-bold">R$</span>
                     <input
                       type="number"
-                      min="25"
-                      max="150"
+                      min="12.5"
+                      max="18"
+                      step="0.5"
                       value={hourlyRate}
-                      onChange={(e) => setHourlyRate(Number(e.target.value))}
-                      className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border border-zinc-300 bg-white font-bold"
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setHourlyRate(val);
+                        if (val < 12.5 || val > 18) {
+                          setRateError('O valor deve ser entre R$ 12,50 e R$ 18,00 por hora.');
+                        } else {
+                          setRateError('');
+                        }
+                      }}
+                      className={`w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border bg-white font-bold transition-all ${
+                        rateError ? 'border-rose-500 focus:ring-rose-500' : 'border-zinc-300 focus:border-[#96382B]'
+                      }`}
                     />
                   </div>
-                  <span className="text-[10px] text-zinc-500 mt-1 block">
-                    Repasse líquido estimado: ~R$ {(hourlyRate * 0.88).toFixed(2)}/h (taxa média de 12% da plataforma).
-                  </span>
+                  {rateError ? (
+                    <span className="text-[11px] text-rose-600 font-semibold mt-1 block">
+                      {rateError}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-zinc-500 mt-1 block">
+                      Repasse líquido estimado: ~R$ {(hourlyRate * 0.88).toFixed(2)}/h (taxa média de 12% da plataforma).
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -369,13 +398,13 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
                   placeholder="Conte sobre sua formação, carinho pela profissão, rotinas que domina e diferenciais..."
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="w-full p-3 text-sm rounded-xl border border-zinc-300 bg-white"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-300 bg-white"
                 />
               </div>
 
-              {/* Specialties checklist */}
-              <div className="space-y-2 pt-2">
-                <label className="text-xs font-bold text-zinc-800 block">
+              {/* Specialties */}
+              <div>
+                <label className="text-xs font-semibold text-zinc-700 block mb-2">
                   Selecione suas Especialidades ({category === 'babysitter' ? 'Infantil' : category === 'elderly_care' ? 'Geriátrico' : 'Pets'}):
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -411,7 +440,13 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setStep(3)}
+                onClick={() => {
+                  if (hourlyRate < 12.5 || hourlyRate > 18) {
+                    setRateError('Por favor, defina um valor por hora entre R$ 12,50 e R$ 18,00 antes de continuar.');
+                    return;
+                  }
+                  setStep(3);
+                }}
                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-[#96382B] hover:bg-[#7D2E23] flex items-center gap-2 cursor-pointer shadow-xs min-h-[44px]"
               >
                 <span>Avançar para Verificação & LGPD</span>
@@ -437,12 +472,12 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
             {/* States lived selector */}
             <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 space-y-2">
               <label className="text-xs font-bold text-zinc-800 block">
-                Estados em que residiu nos últimos 5 anos (Tabela <code>states_lived</code>):
+                Em quais Estados brasileiros você morou ou trabalhou nos últimos 5 anos?
               </label>
-              <p className="text-xs text-zinc-500">
-                Nosso motor consultará certidões negativas em cada Tribunal de Justiça estadual selecionado.
+              <p className="text-[11px] text-zinc-500">
+                A TuttiZelo emite certidões criminais negativas no Tribunal de Justiça de cada Estado selecionado para garantir o Selo Nível 2.
               </p>
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex flex-wrap gap-1.5 pt-2">
                 {brazilianStates.map((uf) => {
                   const isChecked = statesLived.includes(uf);
                   return (
@@ -450,58 +485,62 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
                       key={uf}
                       type="button"
                       onClick={() => toggleStateLived(uf)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold cursor-pointer transition-all ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         isChecked
                           ? 'bg-emerald-700 text-white shadow-xs'
-                          : 'bg-white border border-zinc-300 text-zinc-700 hover:border-zinc-400'
+                          : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100'
                       }`}
                     >
-                      TJ{uf} {isChecked ? '✓' : ''}
+                      {isChecked ? '✓ ' : ''}{uf}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* LGPD Consents checkboxes */}
-            <div className="space-y-3 pt-2">
-              <label className="text-xs font-bold text-zinc-800 block">
-                Termos de Consentimento Expresso (Lei Geral de Proteção de Dados - Art. 7º):
-              </label>
+            {/* LGPD Clear Purpose Checkboxes */}
+            <div className="space-y-3 p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBDCD7]">
+              <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-[#96382B]" />
+                <span>Consentimento Expresso e Específico (Art. 7º, I da LGPD)</span>
+              </h3>
 
-              <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={consentBackgroundCheck}
                   onChange={(e) => setConsentBackgroundCheck(e.target.checked)}
-                  className="mt-0.5 accent-[#96382B] w-4 h-4 cursor-pointer"
+                  className="mt-0.5 rounded text-[#96382B] focus:ring-[#96382B]"
                 />
-                <div className="text-xs text-zinc-700 leading-relaxed">
-                  <strong>Consulta de Certidões Forenses e Criminais:</strong> Autorizo expressamente a TuttiZelo Tecnologia Ltda a emitir certidões de distribuição de feitos criminais nos Tribunais de Justiça estaduais e na Polícia Federal para fins de verificação de segurança.
+                <div className="text-xs text-zinc-700">
+                  <span className="font-semibold text-zinc-900">Consulta de Antecedentes e Certidões: </span>
+                  Autorizo a TuttiZelo a consultar certidões cíveis e criminais estaduais e federais nos tribunais de justiça competentes com a finalidade exclusiva de homologação do meu perfil profissional.
                 </div>
               </label>
 
-              <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={consentBiometrics}
                   onChange={(e) => setConsentBiometrics(e.target.checked)}
-                  className="mt-0.5 accent-[#96382B] w-4 h-4 cursor-pointer"
+                  className="mt-0.5 rounded text-[#96382B] focus:ring-[#96382B]"
                 />
-                <div className="text-xs text-zinc-700 leading-relaxed">
-                  <strong>Prova de Vida & Validação Biométrica Facial:</strong> Concordo com a conferência da minha selfie contra os registros do documento oficial de identificação com detecção de vivacidade.
+                <div className="text-xs text-zinc-700">
+                  <span className="font-semibold text-zinc-900">Prova de Vida & Biometria Facial: </span>
+                  Autorizo a captura e validação da minha selfie em tempo real contra o documento oficial para prevenir fraudes de identidade.
                 </div>
               </label>
 
-              <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={consentTerms}
                   onChange={(e) => setConsentTerms(e.target.checked)}
-                  className="mt-0.5 accent-[#96382B] w-4 h-4 cursor-pointer"
+                  className="mt-0.5 rounded text-[#96382B] focus:ring-[#96382B]"
                 />
-                <div className="text-xs text-zinc-700 leading-relaxed">
-                  <strong>Termo de Intermediação & Taxa Compartilhada (10% a 15%):</strong> Aceito os termos de conduta, a taxa justa de intermediação da plataforma (10% a 15%) sobre os atendimentos concluídos, o check-in por GPS e as avaliações mútuas.
+                <div className="text-xs text-zinc-700">
+                  <span className="font-semibold text-zinc-900">Termos de Uso e Política de Taxa Justa (10%-15%): </span>
+                  Estou ciente das regras de custódia PIX segura (Escrow) e repasse automático pós-plantão.
                 </div>
               </label>
             </div>
@@ -518,13 +557,9 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
                 type="button"
                 disabled={!consentBackgroundCheck || !consentBiometrics || !consentTerms}
                 onClick={() => setStep(4)}
-                className={`px-6 py-2.5 rounded-xl font-bold text-sm text-white flex items-center gap-2 cursor-pointer shadow-xs min-h-[44px] ${
-                  consentBackgroundCheck && consentBiometrics && consentTerms
-                    ? 'bg-[#96382B] hover:bg-[#7D2E23]'
-                    : 'bg-zinc-300 cursor-not-allowed'
-                }`}
+                className="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-[#96382B] hover:bg-[#7D2E23] disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-xs min-h-[44px]"
               >
-                <span>Avançar para Revisão</span>
+                <span>Avançar para Revisão Final</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -535,21 +570,22 @@ export const CaregiverOnboarding: React.FC<CaregiverOnboardingProps> = ({
         {step === 4 && (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-zinc-900 font-display">
-                Revisão do Perfil Profissional
+              <h2 className="text-xl font-bold text-zinc-900 font-display flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-amber-600" />
+                <span>Revisão do Perfil e Emissão do Selo</span>
               </h2>
               <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-                Revise suas informações antes de concluir o envio para a curadoria TuttiZelo.
+                Veja uma prévia de como seu cartão aparecerá para as famílias e tutores da sua região.
               </p>
             </div>
 
-            {/* Card preview */}
-            <div className="p-5 rounded-2xl border border-zinc-200 bg-zinc-50 space-y-4">
+            {/* Profile Preview Card */}
+            <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-4">
               <div className="flex items-start gap-4">
                 <img
                   src={avatarUrl}
-                  alt={fullName || 'Novo Profissional'}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-xs"
+                  alt={fullName}
+                  className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm"
                 />
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">

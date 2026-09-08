@@ -85,7 +85,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsSubmitting(false);
 
       if (mode === 'register' && userType === 'caregiver') {
-        setSuccessMsg('Cadastro inicial realizado! Redirecionando para a área de verificação profissional...');
+        setSuccessMsg("Cadastro realizado! Redirecionando para a sua área profissional..."); if (onSuccess) { onSuccess({ name: name || email.split("@")[0], email, userType: "caregiver" }); }');
         setTimeout(() => {
           onClose();
           if (onGoToOnboarding) {
