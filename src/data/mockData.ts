@@ -26,7 +26,7 @@ export const MOCK_CAREGIVERS: (CaregiverProfile & {
     city: 'São Paulo',
     state: 'SP',
     states_lived: ['SP', 'RJ'],
-    hourly_rate_cents: 4500, // R$ 45,00/h
+    hourly_rate_cents: 1500, // R$ 15,00/h
     specialties: ['Recém-nascidos', 'Primeiros Socorros Infantil', 'Introdução Alimentar', 'Acompanhamento Escolar', 'Inglês Fluente'],
     age_groups: ['baby', '1_3', '4_6'],
     availability: {
@@ -66,7 +66,7 @@ export const MOCK_CAREGIVERS: (CaregiverProfile & {
     city: 'Campinas',
     state: 'SP',
     states_lived: ['SP', 'MG'],
-    hourly_rate_cents: 5500, // R$ 55,00/h
+    hourly_rate_cents: 1750, // R$ 17,50/h
     specialties: ['Alzheimer / Demência', 'Administração de Medicação', 'Mobilidade Reduzida / Cadeirantes', 'Pós-operatório', 'Sinais Vitais'],
     age_groups: [],
     availability: {
@@ -106,7 +106,7 @@ export const MOCK_CAREGIVERS: (CaregiverProfile & {
     city: 'São Paulo',
     state: 'SP',
     states_lived: ['SP', 'PR'],
-    hourly_rate_cents: 3500, // R$ 35,00/h
+    hourly_rate_cents: 1250, // R$ 12,50/h (Mínimo da plataforma)
     specialties: ['Cães Grande Porte', 'Gatos Idosos', 'Medicação Oral', 'Adestramento Positivo', 'Passeio Educativo'],
     age_groups: [],
     availability: {
@@ -146,7 +146,7 @@ export const MOCK_CAREGIVERS: (CaregiverProfile & {
     city: 'São Bernardo do Campo',
     state: 'SP',
     states_lived: ['SP'],
-    hourly_rate_cents: 4800, // R$ 48,00/h
+    hourly_rate_cents: 1600, // R$ 16,00/h
     specialties: ['Autismo (TEA)', 'Necessidades Especiais', 'Estimulação Sensorial', 'Primeiros Socorros Infantil', 'Rotina Montessoriana'],
     age_groups: ['1_3', '4_6', '7_plus'],
     availability: {
@@ -186,7 +186,7 @@ export const MOCK_CAREGIVERS: (CaregiverProfile & {
     city: 'São Paulo',
     state: 'SP',
     states_lived: ['SP', 'SC'],
-    hourly_rate_cents: 6000, // R$ 60,00/h
+    hourly_rate_cents: 1800, // R$ 18,00/h (Teto máximo da plataforma)
     specialties: ['Parkinson', 'Reabilitação Motora', 'Prevenção de Quedas', 'Mobilidade Reduzida / Cadeirantes', 'Sinais Vitais'],
     age_groups: [],
     availability: {
@@ -226,7 +226,7 @@ export const MOCK_CAREGIVERS: (CaregiverProfile & {
     city: 'Santo André',
     state: 'SP',
     states_lived: ['SP', 'RS'],
-    hourly_rate_cents: 3800, // R$ 38,00/h
+    hourly_rate_cents: 1350, // R$ 13,50/h
     specialties: ['Comportamento Felino', 'Gatos Idosos', 'Medicação Oral', 'Adestramento Positivo', 'Enriquecimento Ambiental'],
     age_groups: [],
     availability: {
