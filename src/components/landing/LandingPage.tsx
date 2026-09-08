@@ -305,7 +305,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="flex items-center gap-3 text-[11px] text-zinc-600 font-medium">
                 <span className="flex items-center gap-1 text-emerald-800">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  Profissionais sem taxas (100% integral)
+                  Taxa justa de 10% a 15% (com seguro de plantão)
                 </span>
                 <span className="flex items-center gap-1 text-emerald-800">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -694,9 +694,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>Para o Profissional (Babás, Idosos ou Pets)</span>
             </div>
-            <h4 className="text-sm font-bold text-emerald-950">100% Gratuito Sempre</h4>
+            <h4 className="text-sm font-bold text-emerald-950">Taxa Justa: 10% a 15% por Plantão</h4>
             <p className="text-xs text-emerald-800">
-              Zero comissões, zero taxas de cadastro e repasse total das horas via PIX após o check-out confirmado.
+              Cadastro 100% grátis. A taxa só é cobrada quando você realiza o plantão e cobre seguro de acidentes, proteção contra calotes e repasse automático via PIX.
             </p>
           </div>
 
