@@ -40,7 +40,7 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
   // Cálculos financeiros em centavos
   const rateCents = caregiver.hourly_rate_cents || 1500;
   const subtotalCents = rateCents * hours;
-  const platformFeeCents = Math.round(subtotalCents * 0.12); // Taxa de 12% para seguro e custódia
+  const platformFeeCents = Math.round(subtotalCents * 0.12);
   const totalCents = subtotalCents + platformFeeCents;
 
   const pixCode = `00020126580014br.gov.bcb.pix0136${caregiver.id}520400005303986540${(
@@ -87,7 +87,6 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        {/* ETAPA 1: Detalhes do Plantão */}
         {step === 'details' && (
           <div className="space-y-5">
             <div className="flex items-center gap-3 border-b border-zinc-100 pb-4">
@@ -151,16 +150,13 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               </div>
             </div>
 
-            {/* Resumo Financeiro */}
             <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-2 text-xs">
               <div className="flex justify-between text-zinc-600">
                 <span>Cuidado ({hours} horas):</span>
                 <span>R$ {(subtotalCents / 100).toFixed(2).replace('.', ',')}</span>
               </div>
               <div className="flex justify-between text-zinc-600">
-                <span className="flex items-center gap-1">
-                  Seguro TuttiZelo + Custódia Escrow:
-                </span>
+                <span>Seguro TuttiZelo + Custódia Escrow:</span>
                 <span>R$ {(platformFeeCents / 100).toFixed(2).replace('.', ',')}</span>
               </div>
               <div className="border-t border-zinc-200 pt-2 flex justify-between font-black text-sm text-zinc-900">
@@ -190,7 +186,6 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
           </div>
         )}
 
-        {/* ETAPA 2: Pagamento PIX com Custódia Escrow */}
         {step === 'payment' && (
           <div className="space-y-5 text-center">
             <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
@@ -204,7 +199,6 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               </p>
             </div>
 
-            {/* Código PIX Copia e Cola */}
             <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-2">
               <span className="text-[10px] text-zinc-500 uppercase font-mono block">Chave PIX Copia e Cola</span>
               <p className="text-[10px] font-mono text-zinc-600 truncate bg-white p-2 rounded-lg border border-zinc-200">
@@ -240,7 +234,6 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
           </div>
         )}
 
-        {/* ETAPA 3: Plantão Confirmado */}
         {step === 'confirmed' && (
           <div className="space-y-4 text-center py-4">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
