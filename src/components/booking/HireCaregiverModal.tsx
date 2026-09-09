@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -11,9 +11,11 @@ import {
   Copy,
   AlertCircle,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { CaregiverWithDetails } from '../../types/database';
 import { supabase } from '../../lib/supabase';
+import { paymentService, PixPaymentResponse } from '../../services/paymentService';
 
 interface HireCaregiverModalProps {
   caregiver: CaregiverWithDetails;
@@ -36,44 +38,92 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
   const [step, setStep] = useState<'details' | 'payment' | 'confirmed'>('details');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [hiringId, setHiringId] = useState<string>('');
+  const [pixData, setPixData] = useState<PixPaymentResponse | null>(null);
+  const [pollingActive, setPollingActive] = useState(false);
 
-  // Cálculos financeiros em centavos
   const rateCents = caregiver.hourly_rate_cents || 1500;
   const subtotalCents = rateCents * hours;
   const platformFeeCents = Math.round(subtotalCents * 0.12);
   const totalCents = subtotalCents + platformFeeCents;
 
-  const pixCode = `00020126580014br.gov.bcb.pix0136${caregiver.id}520400005303986540${(
-    totalCents / 100
-  ).toFixed(2)}5802BR5925TUTTIZELO CUSTODIA SEGUR6009SAO PAULO62070503***6304`;
-
   const handleConfirmBooking = async () => {
     setLoading(true);
+    let createdId = `hir_${Date.now()}`;
+
     if (supabase) {
       try {
-        await supabase.from('hirings').insert([
-          {
-            caregiver_id: caregiver.id,
-            family_name: 'Família Contratante',
-            hours,
-            hourly_rate_cents: rateCents,
-            total_cents: totalCents,
-            status: 'escrow_hold',
-            start_time: `${date}T${startTime}:00Z`,
-          },
-        ]);
+        const { data, error } = await supabase
+          .from('hirings')
+          .insert([
+            {
+              caregiver_id: caregiver.id,
+              family_name: 'Família Contratante',
+              hours,
+              hourly_rate_cents: rateCents,
+              total_cents: totalCents,
+              status: 'pending_payment',
+              start_time: `${date}T${startTime}:00Z`,
+            },
+          ])
+          .select('id')
+          .single();
+
+        if (!error && data) {
+          createdId = data.id;
+        }
       } catch (err) {
-        console.warn('Erro ao registrar contratação:', err);
+        console.warn('Erro ao criar contratação:', err);
       }
     }
+
+    setHiringId(createdId);
+
+    // Gera cobrança no Gateway
+    const payment = await paymentService.createPixCharge({
+      hiringId: createdId,
+      amountCents: totalCents,
+      description: `Plantão ${hours}h com ${caregiver.full_name}`,
+      payerName: 'Família Contratante',
+    });
+
+    setPixData(payment);
     setLoading(false);
     setStep('payment');
+    setPollingActive(true);
   };
 
+  // Polling para detectar confirmação bancária em tempo real
+  useEffect(() => {
+    if (!pollingActive || !hiringId || step !== 'payment') return;
+
+    const interval = setInterval(async () => {
+      const isPaid = await paymentService.checkPaymentStatus(hiringId);
+      if (isPaid) {
+        setPollingActive(false);
+        setStep('confirmed');
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [pollingActive, hiringId, step]);
+
   const copyPix = () => {
-    navigator.clipboard.writeText(pixCode);
+    if (!pixData?.pixCode) return;
+    navigator.clipboard.writeText(pixData.pixCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const simulateSuccess = async () => {
+    if (supabase && hiringId) {
+      await supabase
+        .from('hirings')
+        .update({ status: 'escrow_hold', paid_at: new Date().toISOString() })
+        .eq('id', hiringId);
+    }
+    setPollingActive(false);
+    setStep('confirmed');
   };
 
   return (
@@ -87,6 +137,7 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
+        {/* ETAPA 1: Detalhes */}
         {step === 'details' && (
           <div className="space-y-5">
             <div className="flex items-center gap-3 border-b border-zinc-100 pb-4">
@@ -167,42 +218,58 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               </div>
             </div>
 
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs text-emerald-900">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>
-                O valor fica <strong>100% protegido em custódia</strong> e só é pago à cuidadora após você confirmar a realização do serviço.
-              </span>
-            </div>
-
             <button
               type="button"
               disabled={loading}
               onClick={handleConfirmBooking}
               className="w-full py-3.5 rounded-xl font-bold text-xs text-white bg-[#96382B] hover:bg-[#7D2E23] transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs"
             >
-              <CreditCard className="w-4 h-4" />
-              <span>Prosseguir para Pagamento Seguro via PIX</span>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Gerando Cobrança Bancária...</span>
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  <span>Gerar PIX com Custódia Garantida</span>
+                </>
+              )}
             </button>
           </div>
         )}
 
+        {/* ETAPA 2: Pagamento PIX com QR Code Real */}
         {step === 'payment' && (
-          <div className="space-y-5 text-center">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-              <QrCode className="w-6 h-6" />
-            </div>
-
+          <div className="space-y-4 text-center">
             <div className="space-y-1">
-              <h3 className="text-lg font-black text-zinc-900 font-display">Pague via PIX Dinâmico</h3>
-              <p className="text-xs text-zinc-500 max-w-xs mx-auto">
-                O valor de <strong>R$ {(totalCents / 100).toFixed(2).replace('.', ',')}</strong> será retido com segurança na TuttiZelo.
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800">
+                Aguardando Pagamento
+              </span>
+              <h3 className="text-lg font-black text-zinc-900 font-display">Escaneie o QR Code PIX</h3>
+              <p className="text-xs text-zinc-500">
+                Valor: <strong>R$ {(totalCents / 100).toFixed(2).replace('.', ',')}</strong> (Custódia Escrow)
               </p>
             </div>
 
+            {/* Imagem do QR Code Oficial */}
+            {pixData?.qrCodeUrl && (
+              <div className="flex justify-center py-2">
+                <div className="p-3 bg-white border-2 border-dashed border-emerald-300 rounded-3xl shadow-xs">
+                  <img
+                    src={pixData.qrCodeUrl}
+                    alt="QR Code PIX"
+                    className="w-44 h-44 rounded-xl object-contain mx-auto"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Chave Copia e Cola */}
             <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-2">
-              <span className="text-[10px] text-zinc-500 uppercase font-mono block">Chave PIX Copia e Cola</span>
-              <p className="text-[10px] font-mono text-zinc-600 truncate bg-white p-2 rounded-lg border border-zinc-200">
-                {pixCode}
+              <span className="text-[10px] text-zinc-500 uppercase font-mono block">Código PIX Copia e Cola</span>
+              <p className="text-[10px] font-mono text-zinc-600 truncate bg-white p-2 rounded-lg border border-zinc-200 select-all">
+                {pixData?.pixCode}
               </p>
               <button
                 type="button"
@@ -212,7 +279,7 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
                 {copied ? (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Copiado com Sucesso!</span>
+                    <span>Código Copiado!</span>
                   </>
                 ) : (
                   <>
@@ -223,32 +290,37 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               </button>
             </div>
 
+            <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 py-1">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+              <span>Identificando pagamento bancário automaticamente...</span>
+            </div>
+
             <button
               type="button"
-              onClick={() => setStep('confirmed')}
-              className="w-full py-3.5 rounded-xl font-bold text-xs text-white bg-emerald-700 hover:bg-emerald-800 transition-colors cursor-pointer flex items-center justify-center gap-2"
+              onClick={simulateSuccess}
+              className="w-full py-2.5 rounded-xl font-bold text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Simular Pagamento Confirmado</span>
+              Simular Baixa Imediata (Ambiente de Teste)
             </button>
           </div>
         )}
 
+        {/* ETAPA 3: Confirmado */}
         {step === 'confirmed' && (
           <div className="space-y-4 text-center py-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto animate-bounce">
               <CheckCircle2 className="w-10 h-10" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-black text-zinc-900 font-display">Plantão Agendado & Seguro Ativo!</h3>
+              <h3 className="text-xl font-black text-zinc-900 font-display">Pagamento Confirmado em Custódia!</h3>
               <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                A cuidadora <strong>{caregiver.full_name}</strong> recebeu a notificação com os detalhes do plantão.
+                O valor foi retido com segurança e a cuidadora <strong>{caregiver.full_name}</strong> já recebeu o chamado na agenda.
               </p>
             </div>
 
             <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-left text-xs space-y-1.5 max-w-sm mx-auto">
               <div className="flex justify-between">
-                <span className="text-zinc-500">Data:</span>
+                <span className="text-zinc-500">Data e Hora:</span>
                 <span className="font-bold text-zinc-800">{date} às {startTime}</span>
               </div>
               <div className="flex justify-between">
@@ -256,8 +328,8 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
                 <span className="font-bold text-zinc-800">{hours} horas</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Status Custódia:</span>
-                <span className="font-bold text-emerald-700">Bloqueado em Segurança</span>
+                <span className="text-zinc-500">Garantia:</span>
+                <span className="font-bold text-emerald-700">Seguro Escrow TuttiZelo Ativo</span>
               </div>
             </div>
 
@@ -266,7 +338,7 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               onClick={onClose}
               className="w-full py-3 rounded-xl font-bold text-xs text-white bg-[#96382B] hover:bg-[#7D2E23] transition-colors cursor-pointer"
             >
-              Concluir e Voltar
+              Finalizar e Voltar
             </button>
           </div>
         )}
