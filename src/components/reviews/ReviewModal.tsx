@@ -6,7 +6,6 @@ import {
   X,
   Heart,
   Clock,
-  Sparkles,
   Send,
 } from 'lucide-react';
 import { CaregiverWithDetails } from '../../types/database';
@@ -86,7 +85,6 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           </div>
         ) : (
           <>
-            {/* Header da Avaliação */}
             <div className="flex items-center gap-3 border-b border-zinc-100 pb-4">
               <img
                 src={caregiver.avatar_url}
@@ -101,7 +99,6 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               </div>
             </div>
 
-            {/* Estrelas Principais */}
             <div className="text-center space-y-2 py-2">
               <span className="text-xs font-bold text-zinc-700 block">Nota Geral</span>
               <div className="flex justify-center gap-2">
@@ -132,7 +129,6 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               </span>
             </div>
 
-            {/* Critérios Específicos */}
             <div className="space-y-3 bg-zinc-50 p-3.5 rounded-2xl border border-zinc-100 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-zinc-600 flex items-center gap-1.5 font-medium">
@@ -169,7 +165,6 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               </div>
             </div>
 
-            {/* Comentário Escrito */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-zinc-700">Deixe um depoimento para o perfil:</label>
               <textarea
@@ -181,7 +176,6 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               />
             </div>
 
-            {/* Botão de Envio */}
             <button
               type="button"
               disabled={loading}
