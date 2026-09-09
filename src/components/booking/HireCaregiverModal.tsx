@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Sparkles,
   Loader2,
+  Percent,
 } from 'lucide-react';
 import { CaregiverWithDetails } from '../../types/database';
 import { supabase } from '../../lib/supabase';
@@ -42,9 +43,25 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
   const [pixData, setPixData] = useState<PixPaymentResponse | null>(null);
   const [pollingActive, setPollingActive] = useState(false);
 
+  // REGRA DINÂMICA DE TAXA TUTTIZELO (10% A 15%)
+  // - Plantões longos (>= 8h): 10% (benefício por volume)
+  // - Plantões médios (5h a 7h): 12% (taxa padrão de custódia e seguro)
+  // - Plantões curtos (2h a 4h): 15% (cobertura intensiva de seguro e garantia mínima)
+  const getFeePercentage = (h: number): { percent: number; label: string } => {
+    if (h >= 8) {
+      return { percent: 10, label: '10% (Desconto especial para plantão estendido)' };
+    } else if (h >= 5) {
+      return { percent: 12, label: '12% (Taxa padrão de custódia e seguro)' };
+    } else {
+      return { percent: 15, label: '15% (Plantão pontual com cobertura completa)' };
+    }
+  };
+
+  const { percent: feePercent, label: feeLabel } = getFeePercentage(hours);
+
   const rateCents = caregiver.hourly_rate_cents || 1500;
   const subtotalCents = rateCents * hours;
-  const platformFeeCents = Math.round(subtotalCents * 0.12);
+  const platformFeeCents = Math.round(subtotalCents * (feePercent / 100));
   const totalCents = subtotalCents + platformFeeCents;
 
   const handleConfirmBooking = async () => {
@@ -83,7 +100,7 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
     const payment = await paymentService.createPixCharge({
       hiringId: createdId,
       amountCents: totalCents,
-      description: `Plantão ${hours}h com ${caregiver.full_name}`,
+      description: `Plantão ${hours}h com ${caregiver.full_name} (${feePercent}% taxa TuttiZelo)`,
       payerName: 'Família Contratante',
     });
 
@@ -196,20 +213,31 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
                 className="w-full accent-[#96382B] cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-zinc-400">
-                <span>Mínimo: 2h</span>
-                <span>Máximo: 12h</span>
+                <span>2h (15% taxa)</span>
+                <span>6h (12% taxa)</span>
+                <span>8h+ (10% taxa reduzida)</span>
               </div>
             </div>
 
-            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-2 text-xs">
+            {/* Resumo Financeiro com Taxa Dinâmica de 10% a 15% */}
+            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-2.5 text-xs">
               <div className="flex justify-between text-zinc-600">
-                <span>Cuidado ({hours} horas):</span>
+                <span>Cuidado do Profissional ({hours}h):</span>
                 <span>R$ {(subtotalCents / 100).toFixed(2).replace('.', ',')}</span>
               </div>
-              <div className="flex justify-between text-zinc-600">
-                <span>Seguro TuttiZelo + Custódia Escrow:</span>
-                <span>R$ {(platformFeeCents / 100).toFixed(2).replace('.', ',')}</span>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between text-zinc-700 font-semibold">
+                  <span className="flex items-center gap-1">
+                    Taxa TuttiZelo Escrow ({feePercent}%):
+                  </span>
+                  <span>R$ {(platformFeeCents / 100).toFixed(2).replace('.', ',')}</span>
+                </div>
+                <span className="text-[10px] text-zinc-400 block">
+                  {feeLabel} • Cobertura de seguro contra acidentes e custódia bancária
+                </span>
               </div>
+
               <div className="border-t border-zinc-200 pt-2 flex justify-between font-black text-sm text-zinc-900">
                 <span>Total Garantido:</span>
                 <span className="text-[#96382B]">
@@ -232,7 +260,7 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               ) : (
                 <>
                   <CreditCard className="w-4 h-4" />
-                  <span>Gerar PIX com Custódia Garantida</span>
+                  <span>Gerar PIX com Custódia ({feePercent}% Taxa)</span>
                 </>
               )}
             </button>
@@ -248,7 +276,7 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               </span>
               <h3 className="text-lg font-black text-zinc-900 font-display">Escaneie o QR Code PIX</h3>
               <p className="text-xs text-zinc-500">
-                Valor: <strong>R$ {(totalCents / 100).toFixed(2).replace('.', ',')}</strong> (Custódia Escrow)
+                Valor: <strong>R$ {(totalCents / 100).toFixed(2).replace('.', ',')}</strong> (Taxa de {feePercent}% inclusa)
               </p>
             </div>
 
@@ -326,6 +354,10 @@ export const HireCaregiverModal: React.FC<HireCaregiverModalProps> = ({
               <div className="flex justify-between">
                 <span className="text-zinc-500">Duração:</span>
                 <span className="font-bold text-zinc-800">{hours} horas</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Taxa Aplicada:</span>
+                <span className="font-bold text-zinc-800">{feePercent}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-500">Garantia:</span>
