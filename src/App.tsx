@@ -93,7 +93,7 @@ const DEFAULT_CAREGIVERS: CaregiverWithDetails[] = [
   },
 ];
 
-export function App() {
+export default function App() {
   const [activeView, setActiveView] = useState<'landing' | 'discovery' | 'family-dash' | 'caregiver-dash' | 'onboarding'>('landing');
   const [caregivers, setCaregivers] = useState<CaregiverWithDetails[]>(DEFAULT_CAREGIVERS);
   const [loading, setLoading] = useState(true);
